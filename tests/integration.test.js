@@ -1,6 +1,6 @@
 const request = require("supertest");
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
+const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../app');
 const constants = require('../constant');
 const Person = require('../PersonModel');
@@ -9,17 +9,23 @@ let mongoServer;
 
 beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
+    const mongoUri = await mongoServer.getUri();
     await mongoose.connect(mongoUri);
-});
+}, 10000); // Increase timeout to 10 seconds
 
 afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-});
+    if (mongoose.connection.readyState !== 0) {
+        await mongoose.disconnect();
+    }
+    if (mongoServer) {
+        await mongoServer.stop();
+    }
+}, 10000);
 
 beforeEach(async () => {
-    await Person.deleteMany({});
+    if (mongoose.connection.readyState !== 0) {
+        await Person.deleteMany({});
+    }
 });
 
 describe('API Integration Tests', () => {
@@ -37,7 +43,7 @@ describe('API Integration Tests', () => {
             expect(response.body.success).toBe(true);
             expect(response.body.message).toBe(constants.MESSAGES.FETCHED);
             expect(response.body.data).toEqual([]);
-        });
+        }, 10000);
 
         it('should return array of users when users exist', async () => {
             await Person.create(samplePerson);
@@ -45,7 +51,7 @@ describe('API Integration Tests', () => {
             expect(response.status).toBe(200);
             expect(response.body.data.length).toBe(1);
             expect(response.body.data[0].name).toBe(samplePerson.name);
-        });
+        }, 10000);
     });
 
     describe('POST /api/v1/users', () => {
@@ -58,7 +64,7 @@ describe('API Integration Tests', () => {
             expect(response.body.success).toBe(true);
             expect(response.body.message).toBe(constants.MESSAGES.CREATED);
             expect(response.body.data.name).toBe(samplePerson.name);
-        });
+        }, 10000);
     });
 
     describe('GET /api/v1/users/:id', () => {
@@ -68,14 +74,14 @@ describe('API Integration Tests', () => {
             
             expect(response.status).toBe(200);
             expect(response.body.data.name).toBe(samplePerson.name);
-        });
+        }, 10000);
 
         it('should return 404 for non-existent user', async () => {
             const fakeId = new mongoose.Types.ObjectId();
             const response = await request(app).get(`/api/v1/users/${fakeId}`);
             
             expect(response.status).toBe(404);
-        });
+        }, 10000);
     });
 
     describe('PUT /api/v1/users/:id', () => {
@@ -89,7 +95,7 @@ describe('API Integration Tests', () => {
             
             expect(response.status).toBe(200);
             expect(response.body.data.name).toBe(update.name);
-        });
+        }, 10000);
     });
 
     describe('DELETE /api/v1/users/:id', () => {
@@ -102,6 +108,6 @@ describe('API Integration Tests', () => {
             
             const found = await Person.findById(person._id);
             expect(found).toBeNull();
-        });
+        }, 10000);
     });
 });

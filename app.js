@@ -1,14 +1,18 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const constants = require('./constant');
+require('dotenv').config();
 const Controller = require('./controller');
-const controller = new Controller();
+const constants = require('./constant');
+const { connectDB } = require('./database');
 
+const controller = new Controller();
 const app = express();
+
 app.use(express.json());
 
-// Connect to database
-require('./database');
+// Only connect to database if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+    connectDB();
+}
 
 app.get('/api/v1/users', async (req, res) => {
     try {
