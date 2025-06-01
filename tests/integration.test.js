@@ -1,24 +1,18 @@
 const request = require("supertest");
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../app');
 const constants = require('../constant');
 const Person = require('../PersonModel');
 
-let mongoServer;
+const TEST_MONGODB_URI = 'mongodb://localhost:27017/test_db';
 
 beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = await mongoServer.getUri();
-    await mongoose.connect(mongoUri);
-}, 10000); // Increase timeout to 10 seconds
+    await mongoose.connect(TEST_MONGODB_URI);
+}, 10000);
 
 afterAll(async () => {
     if (mongoose.connection.readyState !== 0) {
         await mongoose.disconnect();
-    }
-    if (mongoServer) {
-        await mongoServer.stop();
     }
 }, 10000);
 

@@ -7,7 +7,10 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:unit": "jest tests/unit.test.js",
-    "test:integration": "jest tests/integration.test.js --detectOpenHandles"
+    "test:integration": "jest tests/integration.test.js --detectOpenHandles",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "test:docker": "npm run docker:up && npm run test:integration && npm run docker:down"
   },
   "jest": {
     "testEnvironment": "node",
