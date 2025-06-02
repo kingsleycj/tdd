@@ -7,7 +7,7 @@ const constant = {
 
     USER_TYPES: {
         USER: 'user',
-        AGENT: 'agent',
+        AGENT: 'admin',
     },
 
     MESSAGES: {
